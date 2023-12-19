@@ -1,35 +1,34 @@
+import {NavigationContainer} from '@react-navigation/native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import React from 'react';
-import {
-  StyleSheet,
-  View,
-  useColorScheme,
-  Text,
-  SafeAreaView,
-} from 'react-native';
+import MainScreen from './src/Screens/MainScreen';
+import QuizScreen from './src/Screens/QuizScreen';
+
+export type RootStackParamList = {
+  Main: undefined;
+  Quiz: {quizNum: number};
+};
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  return <SafeAreaView></SafeAreaView>;
+  const Stack = createNativeStackNavigator<RootStackParamList>();
+  return (
+    <>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName={'Main'}>
+          <Stack.Screen
+            options={{headerShown: false}}
+            name="Main"
+            component={MainScreen}
+          />
+          <Stack.Screen
+            options={{headerShown: false}}
+            name="Quiz"
+            component={QuizScreen}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </>
+  );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
 
 export default App;
