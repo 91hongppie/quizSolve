@@ -1,14 +1,22 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  SafeAreaView,
+  ScrollView,
+} from 'react-native';
 import {RootStackParamList} from '../../App';
 import LocalStorage from '../utils/LocalStorage';
 import {useEffect, useState} from 'react';
 import {decode} from 'html-entities';
+import NavigationBar from '../Components/NavigationBar';
 
 type QuizScreenProps = NativeStackScreenProps<RootStackParamList, 'Quiz'>;
 
-interface Quiz {
+export interface Quiz {
   category: string;
   correct_answer: string;
   difficulty: string;
@@ -28,8 +36,15 @@ const QuizScreen = ({navigation, route}: QuizScreenProps) => {
 
   useEffect(() => {
     initQuizs();
+    startTimer();
   }, []);
 
+  const startTimer = async () => {
+    if (quizNum === 0) {
+      const startAt = new Date();
+      await LocalStorage.setItem('startAt', startAt);
+    }
+  };
   const initQuizs = async () => {
     const nextQuizs = await LocalStorage.getItem('quizs');
     setQuizCount(nextQuizs.length);
@@ -55,6 +70,9 @@ const QuizScreen = ({navigation, route}: QuizScreenProps) => {
       await LocalStorage.setItem('answers', [...answers, selectQuestion]);
     }
     if (quizCount && quizNum === quizCount - 1) {
+      const endAt = new Date();
+      await LocalStorage.setItem('endAt', endAt);
+      navigation.navigate('Result');
     } else {
       navigation.push('Quiz', {quizNum: quizNum + 1});
     }
@@ -67,114 +85,95 @@ const QuizScreen = ({navigation, route}: QuizScreenProps) => {
     setSelectQuestion(question);
   };
 
+  const selectAnswer = () => {
+    if (!selectQuestion) {
+      Alert.alert('정답을 선택해주세요');
+      return;
+    }
+    setIsSelect(true);
+  };
+
   return (
     <SafeAreaView>
-      <View style={styles.navigationBar}>
-        <TouchableOpacity style={styles.buttonToHome} onPress={goToMain}>
-          <Text style={styles.homeButtonText}>홈으로</Text>
-        </TouchableOpacity>
-        <View style={styles.title}>
-          <Text>
-            {quizNum + 1} / {quizCount}
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={isSelect ? styles.buttonToNext : styles.hide}
-          onPress={goToNext}>
-          <Text style={styles.nextButtonText}>다음</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.questionContainer}>
-        <Text style={{fontSize: 22}}>{quiz?.category}</Text>
+      <NavigationBar
+        rightFunction={goToNext}
+        rightTitle="다음"
+        title={`${quizNum + 1} / ${quizNum}`}
+        leftFunction={goToMain}
+        leftTitle="홈으로"
+      />
 
-        <View style={{height: 16}} />
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
-          <Text style={{fontSize: 26, color: 'green'}}>Quiz {quizNum + 1}</Text>
-        </View>
-        <View style={{height: 10}} />
-        <Text style={{fontSize: 26}}>{decode(quiz?.question)}</Text>
-        <View style={{height: 16}} />
-        <View style={{justifyContent: 'flex-start', gap: 10}}>
-          {questions?.map((question, index) => {
-            return (
-              <TouchableOpacity
-                disabled={isSelect}
-                key={`question_${index}`}
-                style={
-                  selectQuestion === question
-                    ? styles.selectQuestion
-                    : styles.unselectQuestion
-                }
-                onPress={() => {
-                  handleSelectQuestion(question);
-                }}>
-                <Text
-                  style={
-                    selectQuestion === question
-                      ? styles.selectQuestionText
-                      : styles.unselectQuestionText
-                  }>
-                  {index + 1}. {question}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        <View style={{height: 40}} />
-        <View>
-          <TouchableOpacity
-            style={isSelect ? styles.hide : styles.selectButton}
-            onPress={() => {
-              if (!selectQuestion) {
-                Alert.alert('정답을 선택해주세요');
-                return;
-              }
-              setIsSelect(true);
-            }}>
-            <Text style={styles.selectButtonText}>선택하기</Text>
-          </TouchableOpacity>
-          <View style={isSelect ? styles.resultText : styles.hide}>
-            <Text
-              style={
-                selectQuestion === quiz?.correct_answer
-                  ? styles.correctText
-                  : styles.failedText
-              }>
-              {selectQuestion === quiz?.correct_answer
-                ? '정답입니다!'
-                : '틀렸습니다'}
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.questionContainer}>
+          <Text style={{fontSize: 22}}>{decode(quiz?.category)}</Text>
+
+          <View style={{height: 16}} />
+          <View style={{flexDirection: 'row', alignItems: 'center'}}>
+            <Text style={{fontSize: 26, color: 'green'}}>
+              Quiz {quizNum + 1}
             </Text>
           </View>
+          <View style={{height: 10}} />
+          <Text style={{fontSize: 26}}>{decode(quiz?.question)}</Text>
+          <View style={{height: 16}} />
+          <View style={{justifyContent: 'flex-start', gap: 10}}>
+            {questions?.map((question, index) => {
+              return (
+                <TouchableOpacity
+                  disabled={isSelect}
+                  key={`question_${index}`}
+                  style={
+                    selectQuestion === question
+                      ? styles.selectQuestion
+                      : styles.unselectQuestion
+                  }
+                  onPress={() => {
+                    handleSelectQuestion(question);
+                  }}>
+                  <Text
+                    style={
+                      selectQuestion === question
+                        ? styles.selectQuestionText
+                        : styles.unselectQuestionText
+                    }>
+                    {index + 1}. {decode(question)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <View style={{height: 40}} />
+          <View>
+            <TouchableOpacity
+              style={isSelect ? styles.hide : styles.selectButton}
+              onPress={selectAnswer}>
+              <Text style={styles.selectButtonText}>선택하기</Text>
+            </TouchableOpacity>
+            <View style={isSelect ? styles.resultText : styles.hide}>
+              <Text
+                style={
+                  selectQuestion === quiz?.correct_answer
+                    ? styles.correctText
+                    : styles.failedText
+                }>
+                {selectQuestion === quiz?.correct_answer
+                  ? '정답입니다!'
+                  : '틀렸습니다'}
+              </Text>
+            </View>
+          </View>
         </View>
-      </View>
+        <View style={{height: 100}} />
+      </ScrollView>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  navigationBar: {
-    height: 50,
-    justifyContent: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  title: {alignItems: 'center'},
-  buttonToHome: {position: 'absolute', left: 10},
-  buttonToNext: {
-    position: 'absolute',
-    right: 10,
-  },
   hide: {
     display: 'none',
   },
-  homeButtonText: {
-    color: 'blue',
-    fontSize: 16,
-  },
-  nextButtonText: {
-    color: 'green',
-    fontSize: 16,
-  },
+  scrollView: {height: '100%'},
   questionContainer: {paddingHorizontal: 10, alignItems: 'center'},
   selectQuestion: {
     borderWidth: 1,

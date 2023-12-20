@@ -6,6 +6,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import api from '../apis/baseClient';
 import LocalStorage from '../utils/LocalStorage';
@@ -37,18 +38,29 @@ const MainScreen = ({navigation}: MainScreenProps) => {
     amountInput.current.focus();
   };
 
+  const handleNickname = (e: string) => {
+    setNickname(e);
+  };
+
   const handleQuiz = async () => {
-    const questionAmount = amount || 10;
-    const prevQuizs = await LocalStorage.getItem('quizs');
-    let quizs;
-    if (prevQuizs) {
-      quizs = prevQuizs;
-    } else {
-      const res = await api.Quiz.getQuiz({amount: questionAmount});
-      quizs = res['results'];
+    try {
+      const questionAmount = amount || 10;
+      const prevQuizs = await LocalStorage.getItem('quizs');
+
+      let quizs;
+      if (prevQuizs) {
+        quizs = prevQuizs;
+      } else {
+        const res = await api.Quiz.getQuiz({amount: questionAmount});
+        quizs = res['results'];
+      }
+      await LocalStorage.setItem('quizs', quizs);
+      await LocalStorage.setItem('nickname', nickname);
+      navigation.navigate('Quiz', {quizNum: 0});
+    } catch (e) {
+      console.log(e);
+      Alert.alert('잠시 후 다시 시도해주세요.');
     }
-    await LocalStorage.setItem('quizs', quizs);
-    navigation.navigate('Quiz', {quizNum: 0});
   };
 
   return (
@@ -62,9 +74,7 @@ const MainScreen = ({navigation}: MainScreenProps) => {
           maxLength={5}
           multiline={false}
           textAlign="center"
-          onChangeText={e => {
-            setNickname(e);
-          }}
+          onChangeText={handleNickname}
           onSubmitEditing={moveCursor}
         />
         <Text style={{fontSize: 23}}>님</Text>
