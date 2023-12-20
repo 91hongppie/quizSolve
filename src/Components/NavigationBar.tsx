@@ -17,13 +17,19 @@ const NavigationBar = ({
 }: NavigationBarProps) => {
   return (
     <View style={styles.navigationBar}>
-      <TouchableOpacity style={styles.buttonToHome} onPress={leftFunction}>
+      <TouchableOpacity
+        style={styles.buttonToHome}
+        onPress={leftFunction}
+        testID="navibationLeftButton">
         <Text style={styles.homeButtonText}>{leftTitle}</Text>
       </TouchableOpacity>
       <View style={styles.title}>
         <Text>{title}</Text>
       </View>
-      <TouchableOpacity style={styles.buttonToNext} onPress={rightFunction}>
+      <TouchableOpacity
+        style={styles.buttonToNext}
+        onPress={rightFunction}
+        testID="navigationRightButton">
         <Text style={styles.nextButtonText}>{rightTitle}</Text>
       </TouchableOpacity>
     </View>

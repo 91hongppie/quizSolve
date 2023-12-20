@@ -70,6 +70,7 @@ const MainScreen = ({navigation}: MainScreenProps) => {
         <Text style={{fontSize: 23}}>안녕하세요 </Text>
         <TextInput
           style={styles.textInput}
+          testID={'nicknameInput'}
           placeholder="홍길동"
           maxLength={5}
           multiline={false}
@@ -83,6 +84,7 @@ const MainScreen = ({navigation}: MainScreenProps) => {
       <View style={styles.descContainer}>
         <Text style={{fontSize: 23}}>문제</Text>
         <TextInput
+          testID={'quizNumInput'}
           style={styles.textInput}
           ref={amountInput}
           placeholder="10"
@@ -95,7 +97,10 @@ const MainScreen = ({navigation}: MainScreenProps) => {
         <Text style={{fontSize: 23}}>개 풀어보실래요?</Text>
       </View>
       <View style={{flex: 1}}></View>
-      <TouchableOpacity style={styles.button} onPress={handleQuiz}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleQuiz}
+        testID="quizSolveButton">
         <Text style={{fontSize: 25, color: 'white'}}>문제 풀기</Text>
       </TouchableOpacity>
       <View style={{flex: 0.5}}></View>
